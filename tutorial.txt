@@ -1,0 +1,265 @@
+
+
+Motivation: Why bother with Debian packages
+
+Step 1: Setting up
+
+$ apt-get install devscripts dh-make
+
+Configure dh_make: add the following to your $HOME/.bashrc
+DEBEMAIL="example@trilug.org"
+DEBFULLNAME="Example Name"
+export DEBEMAIL DEBFULLNAME
+
+Run:
+$ source ~/.bashrc
+
+Step 2: Preparing your codebase
+
+The structure of your source tree should look like this:
+
+trilug-simple/
+    doc/
+    src/
+    Makefile
+
+Note: All the source code is located under the src/ directory, and not in the 
+top level directory. doc/ may contain anything from README's to sample config 
+files. The Makefile should include the "build" and "install" targets to so 
+that dpkg can use it to create the Debian package.
+
+NOTE: Makefile is not the only way. We will talk about this later.
+
+Step 3: Debianizing your codebase
+
+"Debianizing" your codebase consists of adding a debian/ directory to your 
+project, which will contain the configuration files necessary to create a 
+Debian package. The dh-make package provides a script that will do most of 
+this work for us:
+
+Part I: Adding the sample configuration files
+
+$ mkdir -P ~/buildroot/trilug-simple/
+$ cd ~/buildroot/trilug-simple/
+$ git clone FIXME/trilug-sEditing the configuration filesimple trilug-simple-1.0
+$ cd trilug-simple-1.0
+
+Note: We are now in ~/buildroot/trilug-simple/trilug-simple-1.0. The 
+reason for the trilug-simple-1.0 directory is because of where the Debian 
+packages and other files will be placed (this will be explained below). It 
+also makes it easier for dh_make(8) to figure out the name and the version 
+of our package.
+
+We are now ready to add the debian/ directory. We use the dh_make command to 
+do this. We also give it two hints: first we are telling it that out of this 
+codebase we are going to create a single package. We are also going to tell it 
+that we want to create a "native" package; that is we are not packaging 
+a piece of software that was written by someone else.
+
+$ dh_make --single --native 
+Maintainer name : Example name
+Email-Address   : example@trilug.org
+Date            : Tue, 25 Jan 2011 11:16:16 -0500
+Package Name    : trilug-simple
+Version         : 1.0
+License         : gpl
+Using dpatch    : no
+Type of Package : Single
+Hit <enter> to confirm: 
+
+$ cd debian/
+
+Part II: Customizing the package
+
+The first step is to remove files we know we don't want to use:
+
+Note: Most of these are self explanatory: we don't want to create a manpage or 
+include package-specific README files (remember the doc/ directory we had). 
+We likely don't want to add it to the graphical system menu or to watch an 
+upstream URL for updated packages. init.d.ex is special: we are going to use 
+the other version of it, called init.d.lsb.ex
+
+$ rm emacsen* manpage* init.d.ex README* watch.ex trilug-sample.doc-base.EX menu.ex
+
+For the rest of the files, remove the .ex extension (init.d.lsb.ex is special: 
+rename it to init.d).
+
+Now let's walk through the rest of the files and what they should contain:
+
+changelog
+
+The changelog for the project. This file is important: the version of the 
+package will be derived from the top line of this file. Here is an example:
+
+trilug-simple (1.1) unstable; urgency=low
+
+  * Major feature addded
+  - Minor feature or bug fix
+
+-- Example Name <example@trilug.org>  Mon, 21 Aug 2011 21:07:16 -0400
+
+trilug-simple (1.0) unstable; urgency=low
+
+  * Initial Release.
+
+-- Example Name <example@trilug.org>  Tue, 25 Jan 2011 21:06:35 -0400
+
+Note that the version format does not have to be in the x.x format. In fact 
+it is a good idea to use the revision number from your version control system 
+as the package version instead. You should probably also use the commit log 
+from your VCS to automatically populate this file, instead of modifying it 
+directly (that way you would be sure to fill it out).
+
+compat
+
+This file contains the compatibility level with debhelper (which we use 
+indirectly). This should simply be set to 7.
+
+control
+
+The control file contains important information about your package such as its 
+name, dependencies (build-time and run-time), and architecture. Here is an 
+example:
+
+Source: trilug-simple
+Section: web
+Priority: extra
+Maintainer: Example Name <example@trilug.org>
+Build-Depends: debhelper (>= 7), libcurl4-gnutls-dev
+Standards-Version: 3.8.0
+
+Package: trilug-simple
+Architecture: all
+Depends: ${shlibs:Depends}, ${misc:Depends}, libcurl3
+Description: sample trilug package that does much of nothing
+ The simple package is a good way to learn how to create simple debian 
+ packages. It is meant as an example, but is by no means exhaustive.
+
+One important gotcha here is the Architecture clause. It can be any, all or 
+a specific arch, such as amd64. Generally, you want to use either any or all, 
+where any means that the final package will be compiled for a particular 
+architecture, and all means that the same package will run on all 
+architectures. Generally, anything that's compiled will use any while software 
+written in interpreted languages will have Architecture set to all.
+
+Dependencies, recommendations, suggestions and conflicts may be listed here 
+as well. Note that you can even specify version (see the debhelper entry). Use 
+the Depends clause for your own packages. For example you could have 
+trilug-simple depend on trilug-lib, and then when you run $ apt-get install 
+trilug-simple, trilug-lib will be installed automatically.
+
+copyright
+
+This file is not particularly important, but building the package will not 
+work without it. Here is the sample content for a commerical product:
+
+This work was packaged for Debian by:
+
+    Example Name <example@trilug.org> on Mon, 21 Aug 2011 21:13:47 -0400
+
+Upstream Author:
+
+    Example Name <example@trilug.org>
+
+Copyright:
+
+    TriLUG (C) 2011
+
+License:
+
+    All rights reserved
+
+The Debian packaging is:
+
+    Copyright (C) 2010 TransLoc Inc <info@transloc.com>
+
+All rights reserved
+
+cron.d:
+
+This is an optional, but often very useful file which will let you define cron 
+jobs that your package will need to run. It will get installed as 
+/etc/cron.d/trilug-simple. If you are going to use this file, make sure to 
+list cron as one of your dependencies.
+
+dirs
+
+This file contains the list of directories which your package requires. It 
+is hard to predict what should go here, but here are some examples:
+
+var/lib/trilug-simple
+etc/trilug-simple
+var/log/trilug-simple
+
+Note: do not include /var/run/ANYTHING. /var/run is a special directory and 
+its contents does not perist between reboots. Instead, anything in here 
+should be created by either your init script or your program directly.
+
+init.d
+
+This optional file gets installed to /etc/init.d/trilug-simple. This is the 
+standard mechanism for starting up processes on system reboot. This file is 
+rather long, and in most cases the sample file is a very good start.
+
+Note: most daemons do not need to run as root, but that is the default in the 
+sample init.d file. To make sure the process does not run as root you will 
+need to:
+    * Make sure a package-specific user exists (we will do this below)
+    * Make sure the package-specific user has write access to all the necessary
+      directories, such as /var/logs/trilug-simple, /var/run/trilug-simple, 
+      /var/lib/trilug-simple, etc.
+    * Make sure to set the DAEMONUSER variable to be your package-specific user
+
+preinst, postinst, prerm and postrm
+
+These files will be run before and after the package is installed and removed, 
+respectively. If one of these files is not present, a default one will be 
+generated. What each file should include:
+
+    * preinst - creating package-specific users
+    * postinst - installing the init script to the appropriate runlevels and 
+      starting up the daemons
+    * prerm - stopping the daemons and removing the init script from all 
+      runlevels
+    * postrm - removing the package-specific users (can also be done in prerm)
+
+Most of these files already have good examples. Here is a sample of the 
+postinst file to get you started:
+
+rules
+
+This file is an executable Makefile (separate from the one that comes with 
+your codebase). It allows you to have a great deal of customization for how 
+your package is built (see http://www.debian.org/doc/manuals/maint-guide/dreq.en.html#rules for details). However, there is a shortcut:
+
+#!/usr/bin/make -f
+# -*- makefile -*-
+# Sample debian/rules that uses debhelper.
+# This file was originally written by Joey Hess and Craig Small.
+# As a special exception, when this file is copied by dh-make into a
+# dh-make output file, you may use that output file without restriction.
+# This special exception was added by Craig Small in version 0.37 of dh-make.
+
+# Uncomment this to turn on verbose mode.
+#export DH_VERBOSE=1
+
+%:
+        dh $@
+
+The above file will run all the default rules, which will use our 
+trilug-simple/Makefile to do the building, installation, cleanup etc. You may 
+think of it as magic.
+
+Step 3: Building the package
+
+Lyrical aside: Python packages
+
+Step 4: Setting up a repository
+
+Step 5: Adding repositories to your machines and using them
+
+Step 6: Your build process
+
+Further reading: External resources
+
+Questions/Comments
