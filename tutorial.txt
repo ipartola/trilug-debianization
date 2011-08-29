@@ -2,9 +2,11 @@
 
 Motivation: Why bother with Debian packages
 
+
+
 Step 1: Setting up
 
-$ apt-get install devscripts dh-make
+$ sudo apt-get install build-essential devscripts dh-make
 
 Configure dh_make: add the following to your $HOME/.bashrc
 DEBEMAIL="example@trilug.org"
@@ -76,13 +78,13 @@ The first step is to remove files we know we don't want to use:
 Note: Most of these are self explanatory: we don't want to create a manpage or 
 include package-specific README files (remember the doc/ directory we had). 
 We likely don't want to add it to the graphical system menu or to watch an 
-upstream URL for updated packages. init.d.ex is special: we are going to use 
-the other version of it, called init.d.lsb.ex
+upstream URL for updated packages. init.d.ex is special: on Debian 5 you will 
+need to use init.d.lsb.ex and remove init.d. On newer systems just use 
+init.d.
 
-$ rm emacsen* manpage* init.d.ex README* watch.ex trilug-sample.doc-base.EX menu.ex
+$ rm emacsen* manpage* README* watch.ex trilug-simple.doc-base.EX menu.ex
 
-For the rest of the files, remove the .ex extension (init.d.lsb.ex is special: 
-rename it to init.d).
+$ rm init.d.ex # only on Debian 5.
 
 Now let's walk through the rest of the files and what they should contain:
 
@@ -129,7 +131,7 @@ Build-Depends: debhelper (>= 7), libcurl4-gnutls-dev
 Standards-Version: 3.8.0
 
 Package: trilug-simple
-Architecture: all
+Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}, libcurl3
 Description: sample trilug package that does much of nothing
  The simple package is a good way to learn how to create simple debian 
@@ -171,7 +173,7 @@ License:
 
 The Debian packaging is:
 
-    Copyright (C) 2010 TransLoc Inc <info@transloc.com>
+    Copyright (C) 2011 TriLUG <info@trilug.org>
 
 All rights reserved
 
@@ -182,18 +184,12 @@ jobs that your package will need to run. It will get installed as
 /etc/cron.d/trilug-simple. If you are going to use this file, make sure to 
 list cron as one of your dependencies.
 
-dirs
+docs
 
-This file contains the list of directories which your package requires. It 
-is hard to predict what should go here, but here are some examples:
+This file lists files/directories that will be installed into 
+/usr/share/doc/trilug-simple/. For example:
 
-var/lib/trilug-simple
-etc/trilug-simple
-var/log/trilug-simple
-
-Note: do not include /var/run/ANYTHING. /var/run is a special directory and 
-its contents does not perist between reboots. Instead, anything in here 
-should be created by either your init script or your program directly.
+doc/README
 
 init.d
 
@@ -252,14 +248,31 @@ think of it as magic.
 
 Step 3: Building the package
 
+Building the package is a simple matter of using the debuild(1) command:
+
+$ debuild
+
 Lyrical aside: Python packages
+
+FIXME
 
 Step 4: Setting up a repository
 
+FIXME
+
 Step 5: Adding repositories to your machines and using them
+
+FIXME
 
 Step 6: Your build process
 
+FIXME
+
 Further reading: External resources
 
+FIXME
+
 Questions/Comments
+
+FIXME
+
