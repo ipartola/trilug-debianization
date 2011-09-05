@@ -2,3 +2,6 @@ To get this program to run, simply run it it like so:
 
 $ /usr/bin/hello
 
+You may also run it as a daemon like so:
+
+$ /usr/bin/hello -d
