@@ -1,0 +1,13 @@
+Source: trilug-simple
+Section: web
+Priority: extra
+Maintainer: Example Name <example@trilug.org>
+Build-Depends: debhelper (>= 7.0.50~)
+Standards-Version: 3.9.1
+
+Package: trilug-simple
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: TriLUG greeter
+ This program will run as a daemon and put a greeting into a text file every 
+ three seconds.

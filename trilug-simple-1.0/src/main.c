@@ -11,7 +11,7 @@
 
 int do_exit = 0;
 
-#define LOCK_FILE "/var/tmp/trilug-hello.pid"
+#define LOCK_FILE "/var/run/trilug-simple/trilug-simple.pid"
 #define LOG_FILE "/var/tmp/trilug.log"
 #define DAEMON_OPTION "-d"
 
@@ -35,7 +35,7 @@ void daemonize() {
     }
 
     ;
-    if ((fp = open(LOCK_FILE, O_RDWR|O_CREAT, 0640)) < 0 || (lockf(fp, F_TLOCK, 0)) < 0) {
+    if ((fp = open(LOCK_FILE, O_RDWR|O_CREAT, 0644)) < 0 || (lockf(fp, F_TLOCK, 0)) < 0) {
         exit(EXIT_FAILURE);
     }
 

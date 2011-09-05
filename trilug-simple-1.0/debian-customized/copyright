@@ -1,0 +1,10 @@
+Format: http://dep.debian.net/deps/dep5
+Upstream-Name: trilug-simple
+
+Files: *
+Copyright: 2011 Example Name <example@trilug.org>
+License: Proprietary
+
+License:
+ 
+ ALL RIGHTS RESERVED
