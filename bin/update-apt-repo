@@ -1,0 +1,22 @@
+#!/bin/sh
+
+if [ $# -lt 1 ]; then
+    echo "Usage: update-apt-repo path [gpg_key_id]"
+    exit -1
+fi
+
+REPO_PATH=$1
+KEY=$2
+
+if [ -n $KEY ]; then
+    KEY_COMMAND="--default-key $KEY"
+fi
+
+cd $REPO_PATH;
+
+apt-ftparchive packages . > Packages
+cat Packages | gzip -c9 > Packages.gz
+apt-ftparchive -c /etc/apt/apt-release.conf release . > ./Release
+rm -rf Release.gpg
+gpg --armor --detach-sign --sign $KEY_COMMAND --output Release.gpg Release
+
