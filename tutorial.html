@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Debianizing Tutorial</title>
+    </head>
+    <body>
+
+        <h2>Motivation: Why bother with Debian packages</h2>
+
+        <ul>
+            <li>8 word version: Gives you a simple way to manage dependencies</li>
+            <li>4 word version: Integrates software with system</li>
+            <li>2 word version: Easier Ops</li>
+        </ul>
+
+
+        <h2>Step 1: Setting up</h2>
+
+            <pre><code>$ sudo apt-get install build-essential devscripts dh-make</code></pre>
+
+        <p>Configure dh_make: add your name and email to your .bashrc:</p>
+        <pre><code>$ echo 'DEBEMAIL="example@trilug.org"' &gt;&gt; ~.bashrc
+$ echo 'DEBFULLNAME="Example Name"' &gt;&gt; ~.bashrc
+$ echo 'export DEBEMAIL DEBFULLNAME' &gt;&gt; ~.bashrc
+$ source ~/.bashrc</code></pre>
+
+        <h2>Step 2: Preparing your codebase</h2>
+
+        <p>The structure of your source tree should look like this:</p>
+
+<pre>trilug-simple/
+    doc/
+    src/
+    Makefile</pre>
+
+        <p>Note: All the source code is located under the src/ directory, and not in the 
+        top level directory. doc/ may contain anything from README's to sample config 
+        files. The Makefile should include the "build" and "install" targets so 
+        that dpkg can use it to create the Debian package.</p>
+
+        <p>NOTE: Makefile is not the only way. We will talk about this later.</p>
+
+        <h2>Step 3: Debianizing your codebase</h2>
+
+        <p>"Debianizing" your codebase consists of adding a debian/ directory to your 
+        project, which will contain the configuration files necessary to create a 
+        Debian package. The dh-make package provides a script that will do most of 
+        this work for us:</p>
+
+        <pre><code>$ mkdir -P ~/buildroot/ &amp;&amp; cd ~/buildroot/
+$ git clone <h1>FIXME</h1> ./
+$ cd trilug-simple-1.0</code></pre>
+
+        <p>We are now ready to add the debian/ directory. We use the dh_make command to 
+        do this. We also give it two hints: first we are telling it that out of this 
+        codebase we are going to create a single package. We are also going to tell it 
+        that we want to create a "native" package; that is we are not packaging 
+        a piece of software that was written by someone else.</p>
+
+        <pre><code>$ dh_make --single --native 
+Maintainer name : Example name
+Email-Address   : example@trilug.org
+Date            : Tue, 25 Jan 2011 11:16:16 -0500
+Package Name    : trilug-simple
+Version         : 1.0
+License         : gpl
+Using dpatch    : no
+Type of Package : Single
+Hit <enter> to confirm: 
+
+$ cd debian/</code></pre>
+
+        <p>We are now ready to begin customizing the configuration files in the 
+        debian/ directory.</p>
+
+        <p>Note: Most of these are self explanatory: we don't want to create a manpage, etc.
+        We likely don't want to add this package to the graphical system menu or to 
+        watch an upstream URL for updated packages.</p>
+
+        <pre><code>$ rm emacsen* manpage* README* watch.ex trilug-simple.doc-base.EX menu.ex</code></pre>
+        
+        <p>On Debian 5 remove init.d and use init.d.lsb.ex instead:</p>
+        <pre><code>$ rm init.d.ex &amp;&amp; mv init.d.lsb.ex init.d</code></pre>
+
+        <p>Now let's walk through the rest of the files and what they should contain:</p>
+
+        <h3>changelog</h3>
+
+        <p>The changelog for the project. This file is important: the version of the 
+        package will be derived from the top line of this file. Here is an example:</p>
+
+        <pre><code>trilug-simple (1.1) unstable; urgency=low
+
+  * Major feature addded
+  - Minor feature or bug fix
+
+-- Example Name <example@trilug.org>  Mon, 21 Aug 2011 21:07:16 -0400
+
+trilug-simple (1.0) unstable; urgency=low
+
+  * Initial Release.
+
+-- Example Name <example@trilug.org>  Tue, 25 Jan 2011 21:06:35 -0400</code></pre>
+
+        <p>Note that the version format does not have to be in the x.x format. In fact 
+        it is a good idea to use the revision number from your version control system 
+        as the package version instead. You should probably also use the commit log 
+        from your VCS to automatically populate this file, instead of modifying it 
+        directly (that way you would be sure to fill it out).</p>
+
+        <h3>compat</h3>
+
+        <p>This file contains the compatibility level with debhelper (which we use 
+        indirectly). This should simply be set to 7.</p>
+
+        <h3>control</h3>
+
+        <p>The control file contains important information about your package such as its 
+        name, dependencies (build-time and run-time), and architecture. Here is an 
+        example:</p>
+
+<pre><code>Source: trilug-simple
+Section: web
+Priority: extra
+Maintainer: Example Name <example@trilug.org>
+Build-Depends: debhelper (&gt;= 7), libcurl4-gnutls-dev
+Standards-Version: 3.8.0
+
+Package: trilug-simple
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}, libcurl3
+Description: sample trilug package that does much of nothing
+ The simple package is a good way to learn how to create simple debian 
+ packages. It is meant as an example, but is by no means exhaustive.</code></pre>
+
+        <p>For sections, see: <a href="http://packages.debian.org/stable/">http://packages.debian.org/stable/</a></p>
+
+        <p>One important gotcha here is the Architecture clause. It can be any, all or 
+        a specific arch, such as amd64. Generally, you want to use either any or all, 
+        where any means that the final package will be compiled for a particular 
+        architecture, and all means that the same package will run on all 
+        architectures. Generally, anything that's compiled will use any while software 
+        written in interpreted languages will have Architecture set to all.</p>
+
+        <p>Dependencies, recommendations, suggestions and conflicts may be listed here 
+        as well. Note that you can even specify version (see the debhelper entry). Use 
+        the Depends clause for your own packages. For example you could have 
+        trilug-simple depend on trilug-lib, and then when you run $ apt-get install 
+        trilug-simple, trilug-lib will be installed automatically.</p>
+
+        <h3>copyright</h3>
+
+        <p>This file is not particularly important, but building the package will not 
+        work without it. Here is the sample content for a commerical product
+        (I am not a lawyer, this is not legal advise):</p>
+
+<pre><code>Format: http://dep.debian.net/deps/dep5
+Upstream-Name: trilug-simple
+
+Files: *
+Copyright: 2011 Example Name <example@trilug.org>
+License: Proprietary
+
+License:
+ 
+ ALL RIGHTS RESERVED</code></pre>
+
+        <h3>(trilug-simple).cron.d:</h3>
+
+        <p>This is an optional, but often very useful file which will let you define cron 
+        jobs that your package will need to run. It will get installed as 
+        /etc/cron.d/trilug-simple. If you are going to use this file, make sure to 
+        list cron as one of your dependencies.</p>
+
+        <h3>docs</h3>
+
+        <p>This file lists files/directories that will be installed into 
+        /usr/share/doc/trilug-simple/. For example:</p>
+
+<pre><code>doc/README
+doc/LICENSE</code></pre>
+
+        <h3>init.d</h3>
+
+        <p>This optional file gets installed to /etc/init.d/trilug-simple. This is the 
+        standard mechanism for starting up processes on system boot. This file is 
+        rather long, and in most cases the sample file is a very good start.</p>
+
+        <p>Note: most daemons do not need to run as root, but that is the default in the 
+        sample init.d file. To make sure the process does not run as root you will 
+        need to:</p>
+
+        <ul>
+            <li>Make sure a package-specific user exists (we will do this below in preinst)</li>
+            <li>Make sure the package-specific user has write access to all the necessary
+            directories, such as /var/logs/trilug-simple, /var/run/trilug-simple, 
+            /var/lib/trilug-simple, etc. This is best done in the start function of 
+            the init script.</li>
+            <li>Make sure to tell start-stop-daemon command that we want to run as a 
+            specific user using the --chuid parameter.</li>
+        </ul>
+
+
+        <h3>preinst, postinst, prerm and postrm</h3>
+
+        <p>These files will be run before and after the package is installed and removed, 
+        respectively. If one of these files is not present, a default one will be 
+        generated. What each file should include:</p>
+
+        <ul>
+            <li>preinst - creating package-specific users</li>
+            <li>postinst - installing the init script to the appropriate runlevels and 
+            starting up the daemons</li>
+            <li>prerm - stopping the daemons</li>
+            <li>postrm - removing the package-specific users, removing init script from all runlevels</li>
+        </ul>
+
+        <h3>rules</h3>
+
+        <p>This file is an executable Makefile (separate from the one that comes with 
+        your codebase). It allows you to have a great deal of customization for how 
+        your package is built (see 
+        <a href="http://www.debian.org/doc/manuals/maint-guide/dreq.en.html#rules">Debian New Maintainers' Guide</a>
+        for details). However, there is a shortcut:</h3>
+
+<pre><code>#!/usr/bin/make -f
+# -*- makefile -*-
+# Sample debian/rules that uses debhelper.
+# This file was originally written by Joey Hess and Craig Small.
+# As a special exception, when this file is copied by dh-make into a
+# dh-make output file, you may use that output file without restriction.
+# This special exception was added by Craig Small in version 0.37 of dh-make.
+
+# Uncomment this to turn on verbose mode.
+#export DH_VERBOSE=1
+
+%:
+        dh $@
+</code></pre>
+
+        <p>The above file will run all the default rules, which will use our 
+        trilug-simple/Makefile to do the building, installation, cleanup, etc.</p>
+
+        <h2>Step 3: Building the package</h2>
+
+        <p>Building the package is a simple matter of using the debuild(1) command:</p>
+
+        <pre><code>$ debuild -us -uc</code></pre>
+
+        <p>This command produces a lot of output that includes the result of building 
+        your source and the output of Lintian.</p>
+
+        <p>Lintian is a program that finds packaging errors in your Debian packages. It
+        can be very helpful in debugging errors in your packages, and can help catch
+        some bugs that you would not normally see. It produces warnings like: 
+        possibly-insecure-handling-of-tmp-files-in-maintainer-script postrm:25. You 
+        can search http://lintian.debian.org/ for the meaning of these messages, which 
+        should help you fix them.</p>
+
+        <p>Note: If you want to remove all the temporary files that debuild created run: <code>$ debuild clean</code></p>
+
+        <h2>Lyrical aside: Python packages</h2>
+
+        <p>A lot of software is written in languages other than C. Python is one popular
+        choice. Debian supports Python-based packages through the python-support 
+        framework. There are a few things that are different:</p>
+
+        <ul>
+
+            <li>You can use a setup.py file (distutils) instead of a Makefile. The magic 
+            shortcut in the debian/rules file will automatically detect this.</li>
+
+            <li>Starting a Python-based daemon is different, since the name of the 
+            executable is going to be something like <code>/usr/bin/python</code> instead of the name
+            you gave it. Adjust your init.d file accordingly.</li>
+
+            <li>Python is a semi-compiled language. Installing the source does not mean 
+            that you can import it. Test using <code>"import trilug.hello"</code> from the Python 
+            interpreter. To make sure this works run 
+            <code>`update-python-modules trilug-python`</code> in the postinst script and before 
+            you start the daemon in the init.d file.</li>
+
+            <li>You should include <em>python-support</em> and <em>python</em> as dependencies in your control
+            file.</li>
+
+            <h2>Step 4: Setting up a repository</h2>
+
+            <p>After your software is built, you will want to set up an APT repository so all
+            of your servers can install the packages via the normal apt-get/aptitude 
+            command.</p>
+
+            <p>An APT repository is simply a web service which hosts the .deb files, a GPG 
+            signature and a package list file. We want this repository to be secure from
+            unauthorized access if we host it on the internet. To do this, we will use 
+            HTTP Basic Auth and only allow access to our repository over HTTPS.</p>
+
+            <p>Note: for the sake of brevity, we are skipping the SSL/TLS setup.</p>
+
+            <p>First let's get nginx set up:</p>
+
+            <pre><code>$ sudo apt-get install nginx apache2-utils apt-utils</code></pre>
+
+            <p>Update the /etc/nginx/sites-available/default:</p>
+
+<pre><code>server {
+    listen   [::]:80;
+    server_name localhost;
+
+    location / {
+        root /var/www;
+        autoindex on;
+        auth_basic "Restricted";
+        auth_basic_user_file /etc/nginx/apt-htpasswd;
+    }
+}</code></pre>
+
+            <p>Add a Basic Auth user, using trilug as password:</p>
+
+            <pre><code>$ sudo htpasswd -c /etc/nginx/apt-htpasswd testuser</code></pre>
+
+            <p>Create a location where the repository will live:</p>
+
+<pre><code>$ sudo /etc/init.d/nginx restart
+$ mkdir -p /var/www/testing
+$ mkdir -p /var/www/stable</code></pre>
+
+            <p>We also need to create an /etc/apt/apt-release.conf file:</p>
+
+<pre><code>APT::FTPArchive::Release::Origin "trilug";
+APT::FTPArchive::Release::Label "trilug";
+APT::FTPArchive::Release::Suite "custom";
+APT::FTPArchive::Release::Codename "custom";
+APT::FTPArchive::Release::Architectures "amd64 i386 source any all";
+APT::FTPArchive::Release::Components "main";
+APT::FTPArchive::Release::Description "Custom debian packages for TriLUG.";</code></pre>
+
+            <p>Create an exectuable file /usr/local/bin/update-apt-repo:</p>
+
+<pre><code>#!/bin/sh
+
+if [ $# -lt 1 ]; then
+    echo "Usage: update-apt-repo path [gpg_key_id]"
+    exit -1
+fi
+
+REPO_PATH=$1
+KEY=$2
+
+if [ -n $KEY ]; then
+    KEY_COMMAND="--default-key $KEY"
+fi
+
+cd $REPO_PATH;
+
+apt-ftparchive packages . &gt; Packages
+cat Packages | gzip -c9 &gt; Packages.gz
+apt-ftparchive -c /etc/apt/apt-release.conf release . &gt; ./Release
+rm -rf Release.gpg
+gpg --armor --detach-sign --sign $KEY_COMMAND --output Release.gpg Release
+</code></pre>
+
+            <p>This file will be run with two parameters: the path to the APT repository and 
+            the name of GPG key which will be used to sign the Release file.</p>
+
+            <p>Let's add the user and create the GPG key:</p>
+
+<pre><code>$ sudo useradd -m repomaster
+$ sudo chown -R repomaster:repomaster /var/www
+$ sudo su repomaster
+$ gpg --genkey</code></pre>
+
+            <p>Make sure to use a blank passphrase for the last step. After answering all the
+            questions GPG asks, figure out what key to use:</p>
+
+<pre><code>$ gpg --list-keys
+/home/repomaster/.gnupg/pubring.gpg
+-----------------------------------
+pub   2048R/29DDDFA8 2011-09-05
+uid                  Repo Master <repomaster@trilug.org>
+</code></pre>
+
+            <p>The key name is <strong>29DDDFA8</strong>. Now let's run the update-apt-repo script we wrote 
+            to test it:</p>
+
+<pre><code>$ cp /home/YOURUSER/buildroot/trilug-simple/*.deb /var/www/testing/
+$ update-apt-repo /var/www/testing 29DDDFA8
+$ ls /var/www/testing
+Packages  Packages.gz  Release  Release.gpg  trilug-simple_1.0_amd64.deb</code></pre>
+
+            <p>If you look in the Packages file, you will find that our package is listed
+            there.</p>
+
+            <p>We also need to export the GPG public key so that apt-get/aptitude know to 
+            trust our repository lists:</p>
+
+<pre><code>$ gpg --export &gt; /var/www/public.key</code></pre>
+
+            <p>As a final step, let's make sure that the update-apt-repo script 
+            runs automatically. To do so, simply add the following to your /etc/crontab
+            file:</p>
+
+<pre><code>* * * * * repomaster /usr/bin/update-apt-repo /var/www/apt/stable 29DDDFA8
+* * * * * repomaster /usr/bin/update-apt-repo /var/www/apt/testing 29DDDFA8</pre></code>
+
+            <h2>Step 5: Adding repositories to your machines and using them</h2>
+
+            <p>HTTPS support is not available by default on older Debian distributions. To 
+            fix this we run:</p>
+
+<pre><code>$ sudo apt-get install apt-transport-https</code></pre>
+
+            <p>Now, let's add our repository to /etc/apt/sources.list file:</p>
+
+<pre><code>deb http://testuser:trilug@localhost:80/testing /</code></pre>
+
+            <p>We also need to tell APT that it can trust this repository. This is done by
+            importing the repomaster's public key:</p>
+
+<pre><code>$ curl http://testuser:trilug@localhost/public.key | sudo apt-key add -</code></pre>
+
+            <p>Note: if you are going to use a self-signed SSL certificate, make sure to add
+            it to the list of trusted certificates on all your machines.</p>
+
+            <p>Now, we are ready to use the repository:</p>
+
+<pre><code>$ sudo apt-get update
+$ apt-cache search trilug
+trilug-simple - TriLUG greeter
+$ sudo apt-get install trilug-simple</code></pre>
+
+            <h2>Lyrical aside #2: Your build process</h2>
+
+            <p>The process of "debianizing" your software is a one-time investment. However,
+            you will end up building it frequently. Things you may want to consider to make
+            it easier on yourself:</p>
+
+            <ul>
+                <li>If you are using a compiled language and the result is arch-dependent, set 
+                up a different build machine for each architecture (e.g.: amd64, i386, etc).</li>
+
+                <li>Write a build script that pulls changelog data from your VCS, updates 
+                debian/changelog, runs debuild on all your build hosts, uploads to your repo.</li>
+
+                <li>Have your build script run automated tests before debuild is run.</li>
+
+                <li>Have your VCS system trigger a build each time a developer creates a new tag.</li>
+            </ul>
+
+            <h2>Further reading: External resources</h2>
+
+            <ul>
+                <li><a href="http://www.debian.org/doc/manuals/maint-guide/">Debian New Maintainers' Guide</a></li>
+                <li><a href="http://wiki.debian.org/SecureApt">Secure APT</a></li>
+            </ul>
+</body>
+</html>
