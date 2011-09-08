@@ -47,7 +47,7 @@ $ source ~/.bashrc</code></pre>
         Debian package. The dh-make package provides a script that will do most of 
         this work for us:</p>
 
-        <pre><code>$ mkdir -P ~/buildroot/ &amp;&amp; cd ~/buildroot/
+        <pre><code>$ mkdir -p ~/buildroot/ &amp;&amp; cd ~/buildroot/
 $ git clone git://github.com/ipartola/trilug-debianization.git ./
 $ cd trilug-simple-1.0</code></pre>
 
@@ -263,7 +263,7 @@ doc/LICENSE</code></pre>
 
         <ul>
 
-            <li>You can use a setup.py file (distutils) instead of a Makefile. The magic 
+            <li>You can use a setup.py file (using setuptools) instead of a Makefile. The magic 
             shortcut in the debian/rules file will automatically detect this.</li>
 
             <li>Starting a Python-based daemon is different, since the name of the 
@@ -364,7 +364,7 @@ gpg --armor --detach-sign --sign $KEY_COMMAND --output Release.gpg Release
 <pre><code>$ sudo useradd -m repomaster
 $ sudo chown -R repomaster:repomaster /var/www
 $ sudo su repomaster
-$ gpg --genkey</code></pre>
+$ gpg --gen-key</code></pre>
 
         <p>Make sure to use a blank passphrase for the last step. After answering all the
         questions GPG asks, figure out what key to use:</p>
