@@ -2,6 +2,7 @@
 <html>
     <head>
         <title>Debianizing Tutorial</title>
+        <meta charset="UTF-8" />
     </head>
     <body>
 
@@ -66,7 +67,7 @@ Version         : 1.0
 License         : gpl
 Using dpatch    : no
 Type of Package : Single
-Hit <enter> to confirm: 
+Hit &lt;enter&gt; to confirm: 
 
 $ cd debian/</code></pre>
 
@@ -217,7 +218,7 @@ doc/LICENSE</code></pre>
         your codebase). It allows you to have a great deal of customization for how 
         your package is built (see 
         <a href="http://www.debian.org/doc/manuals/maint-guide/dreq.en.html#rules">Debian New Maintainers' Guide</a>
-        for details). However, there is a shortcut:</h3>
+        for details). However, there is a shortcut:</p>
 
 <pre><code>#!/usr/bin/make -f
 # -*- makefile -*-
@@ -373,7 +374,7 @@ $ gpg --gen-key</code></pre>
 /home/repomaster/.gnupg/pubring.gpg
 -----------------------------------
 pub   2048R/29DDDFA8 2011-09-05
-uid                  Repo Master <repomaster@trilug.org>
+uid                  Repo Master &lt;repomaster@trilug.org&gt;
 </code></pre>
 
         <p>The key name is <strong>29DDDFA8</strong>. Now let's run the update-apt-repo script we wrote 
@@ -397,7 +398,7 @@ Packages  Packages.gz  Release  Release.gpg  trilug-simple_1.0_amd64.deb</code><
         file:</p>
 
 <pre><code>* * * * * repomaster /usr/bin/update-apt-repo /var/www/apt/stable 29DDDFA8
-* * * * * repomaster /usr/bin/update-apt-repo /var/www/apt/testing 29DDDFA8</pre></code>
+* * * * * repomaster /usr/bin/update-apt-repo /var/www/apt/testing 29DDDFA8</code></pre>
 
         <h2>Step 5: Adding repositories to your machines and using them</h2>
 
