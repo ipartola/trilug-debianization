@@ -451,6 +451,23 @@ $ sudo apt-get install trilug-simple</code></pre>
             <li>Have your VCS system trigger a build each time a developer creates a new tag.</li>
         </ul>
 
+        <h2>Useful commands and tools</h2>
+
+        <p>Commands you may find useful:</p>
+        <ul>
+            <li><code>$ dpkg -l</code> - List installed packages</li>
+            <li><code>$ dpkg -L trilug-simple</code> - List files installed by a package</li>
+            <li><code>$ dpkg -S /usr/bin/hello</code> - Find the package the file belongs to (great for figuring out your dependencies)</li>
+            <li><code>$ apt-cache policy trilug-simple</code> - View available versions of packages</li>
+            <li><code>$ apt-get install trilug-simple=1.0</code> - Install a specific version of the package</li>
+        </ul>
+
+        <p>Useful tools:</p>
+        <ul>
+            <li><a href="http://www.netfort.gr.jp/~dancer/software/pbuilder-doc/pbuilder-doc.html">pbuilder</a> - an automatic Debian Package Building system for personal development</li>
+            <li><a href="http://mirrorer.alioth.debian.org/">reprepro</a> - a tool to run local repositories of Debian packages</li>
+        </ul>
+
         <h2>Further reading: External resources</h2>
 
         <ul>
